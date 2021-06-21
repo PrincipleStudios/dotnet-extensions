@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project>
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <LangVersion>9</LangVersion>
+        <RootNamespace>PrincipleStudios.Extensions.Configuration.SecretsManager</RootNamespace>
+    </PropertyGroup>
+</Project>
