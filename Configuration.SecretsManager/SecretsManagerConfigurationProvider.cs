@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Amazon.SecretsManager.Extensions.Caching;

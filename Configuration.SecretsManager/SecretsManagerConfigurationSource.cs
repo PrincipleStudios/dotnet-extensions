@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
