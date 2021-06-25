@@ -9,20 +9,27 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
     {
         static void Main(string[] args)
         {
-            var secretsConfig = new ConfigurationBuilder().AddJsonFile("appsettings.local.json", optional: false, reloadOnChange: false).Build();
+            var json = System.IO.File.ReadAllText("config/secrets.local.json");
+            var secretConfigDictionary = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, SecretConfig>>(json)!;
+
             var configurationBuilder = new ConfigurationBuilder()
                 .AddSecretsManager(opt =>
                 {
-                    opt.Region = secretsConfig["Region"];
-                    opt.CredentialsProfile = secretsConfig["CredentialsProfile"];
-                    opt.Map = secretsConfig.GetSection("Map").ToSecretConfigDictionary();
+                    if (Environment.GetEnvironmentVariable("AWS_PROFILE") is string profile)
+                        opt.CredentialsProfile = profile;
+                    if (Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") is string region)
+                        opt.Region = region;
+                    opt.Map = secretConfigDictionary;
                 });
 
             var config = configurationBuilder.Build();
-            var configChildren = config.GetSection("Secrets").GetChildren();
+            var configurationHasValue = config.GetChildren().ToDictionary(child => child.Path, child => config[child.Path] != null);
 
-            var configurationValues = configChildren.ToDictionary(child => child.Key, child => config[child.Path]);
-
+            foreach (var entry in configurationHasValue)
+            {
+                // Outputs for each key in the Configuration whether the value is null
+                Console.WriteLine($"{entry.Key}: {entry.Value}");
+            }
         }
     }
 }

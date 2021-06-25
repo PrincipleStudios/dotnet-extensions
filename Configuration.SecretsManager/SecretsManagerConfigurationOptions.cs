@@ -12,10 +12,16 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
     public class SecretsManagerConfigurationOptions
     {
-        public string CredentialsProfile
+        public string? CredentialsProfile
         {
             set
             {
+                if (value == null)
+                {
+                    Credentials = null;
+                    return;
+                }
+
                 var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
 
                 if (chain.TryGetProfile(value, out var profile))
@@ -50,8 +56,15 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
         public TimeSpan? ReloadInterval { get; set; }
         /// <summary>
-        /// Key-value list: Key is the Configuration 
+        /// Key-value list: Key is the Configuration Key
         /// </summary>
         public IDictionary<string, SecretConfig> Map { get; set; } = new Dictionary<string, SecretConfig>();
+        /// <summary>
+        /// Key-value list: Key is the Configuration 
+        /// </summary>
+        public IDictionary<string, IFormatTransform> FormatTransforms { get; set; } = new Dictionary<string, IFormatTransform>()
+        {
+            { "RDS-sqlserver", new RdsSqlServerSecretFormatTransform() },
+        };
     }
 }

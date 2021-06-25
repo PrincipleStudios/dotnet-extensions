@@ -58,7 +58,15 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
         public bool TryGet(string key, out string? value)
         {
-            if (options.Map?[key] is not { SecretId: string secretId })
+            if (options.Map?[key] is not SecretConfig config || !config.IsValid())
+            {
+                value = null;
+                return false;
+            }
+
+            IFormatTransform? formatter = null;
+
+            if (config.Format != null && !(options.FormatTransforms?.TryGetValue(config.Format, out formatter) ?? false))
             {
                 value = null;
                 return false;
@@ -66,7 +74,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
             try
             {
-                value = UnwrapTask(GetSingleSecret(secretId));
+                value = UnwrapTask(GetSingleSecret(config.SecretId, formatter));
                 return true;
             }
             catch (Exception ex)
@@ -76,9 +84,15 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
-        private Task<string> GetSingleSecret(string secretId)
+        private async Task<string?> GetSingleSecret(string secretId, IFormatTransform? formatter)
         {
-            return cache.GetSecretString(secretId);
+            var secretString = await cache.GetSecretString(secretId).ConfigureAwait(false);
+            if (formatter == null)
+                return secretString;
+            var transformed = formatter.TransformSecret(secretString);
+            if (transformed.IsCompletedSuccessfully)
+                return transformed.Result;
+            return await transformed.ConfigureAwait(false);
         }
 
         // This feels awfully dirty, but https://github.com/dotnet/runtime/issues/36018 is blocking proper async
