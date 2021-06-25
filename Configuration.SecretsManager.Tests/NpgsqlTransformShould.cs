@@ -7,14 +7,14 @@ using Xunit;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
-    public class SqlServerTransformShould
+    public class NpgsqlTransformShould
     {
         [Fact]
         public void HandleBasicConnectionStringTransforms()
         {
             VerifyConnectionString(
-                new RdsSecret { Engine = "sqlserver", Host = "example.com", Username = "admin", Password = "1234" },
-                "Server=example.com,1433;Database=master;User Id=admin;Password=1234;"
+                new RdsSecret { Engine = "postgres", Host = "example.com", Username = "admin", Password = "1234" },
+                "Server=example.com;Port=5432;Database=postgres;User Id=admin;Password=1234;"
             );
         }
 
@@ -22,8 +22,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         public void HandleCustomPort()
         {
             VerifyConnectionString(
-                new RdsSecret { Engine = "sqlserver", Host = "example.com", Username = "admin", Password = "1234", Port = 1434 },
-                "Server=example.com,1434;Database=master;User Id=admin;Password=1234;"
+                new RdsSecret { Engine = "postgres", Host = "example.com", Username = "admin", Password = "1234", Port = 1434 },
+                "Server=example.com;Port=1434;Database=postgres;User Id=admin;Password=1234;"
             );
         }
 
@@ -31,8 +31,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         public void HandleSpecificDatabase()
         {
             VerifyConnectionString(
-                new RdsSecret { Engine = "sqlserver", Host = "example.com", Username = "admin", Password = "1234", Dbname = "custom-db" },
-                "Server=example.com,1433;Database=custom-db;User Id=admin;Password=1234;"
+                new RdsSecret { Engine = "postgres", Host = "example.com", Username = "admin", Password = "1234", Dbname = "custom-db" },
+                "Server=example.com;Port=5432;Database=custom-db;User Id=admin;Password=1234;"
             );
         }
 
@@ -40,21 +40,21 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         public void HandleSpecialCharactersInPassword()
         {
             VerifyConnectionString(
-                new RdsSecret { Engine = "sqlserver", Host = "example.com", Username = "admin", Password = "some;strange'pass\"word", Dbname = "custom-db" },
-                "Server=example.com,1433;Database=custom-db;User Id=admin;Password='some;strange''pass\"word';"
+                new RdsSecret { Engine = "postgres", Host = "example.com", Username = "admin", Password = "some;strange'pass\"word", Dbname = "custom-db" },
+                "Server=example.com;Port=5432;Database=custom-db;User Id=admin;Password='some;strange''pass\"word';"
             );
         }
 
         private void VerifyConnectionString(RdsSecret rdsSecret, string expected)
         {
             // Verifies that the expected value is valid before testing the RDS transform
-            using var connection = new System.Data.SqlClient.SqlConnection(expected);
+            using var connection = new Npgsql.NpgsqlConnection(expected);
 
             var secret = System.Text.Json.JsonSerializer.Serialize(rdsSecret, new System.Text.Json.JsonSerializerOptions
             {
                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
             });
-            var target = new RdsSqlServerSecretFormatTransform();
+            var target = new RdsNpgsqlSecretFormatTransform();
 
             var actual = target.TransformSecret(secret).Result;
             Assert.Equal(expected, actual);

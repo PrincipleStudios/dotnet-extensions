@@ -65,6 +65,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         public IDictionary<string, IFormatTransform> FormatTransforms { get; set; } = new Dictionary<string, IFormatTransform>()
         {
             { "RDS-sqlserver", new RdsSqlServerSecretFormatTransform() },
+            { "RDS-npgsql", new RdsNpgsqlSecretFormatTransform() },
         };
     }
 }
