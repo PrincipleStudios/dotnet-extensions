@@ -29,3 +29,7 @@
 * **ReloadInterval** - Determines duration for caching as well as change notifications for all keys in this secrets manager configuration provider.
 * **Map** - Provides a mapping from configuration keys to AWS secret ids for custom structuring of your configuration. Keys are .NET Configuration paths.
     * **SecretId** - The name of the secret id within AWS.
+    * **Format** - Transforms the value in the secret before adding it to the config. See `FormatTransforms`.
+* **FormatTransforms** - A dictionary containing format mappings. Each mapping implements the `IFormatTransform`. Preregistered transforms include:
+    - _RDS-sqlserver_ - Expects an RDS secret from SecretsManager and transforms it into a SqlConnection ConnectionString.
+    - _RDS-npgsql_ - Expects an RDS secret from SecretsManager and transforms it into a Npgsql ConnectionString.

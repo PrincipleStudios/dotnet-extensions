@@ -37,6 +37,82 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
         }
 
         [Fact]
+        public void SupportRdsSqlServerTransformedSecrets()
+        {
+            var expected = "Server=example.com,1433;Database=master;User Id=admin;Password=1234;";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/db", FakeSecretsManager.CurrentVersionStage, "{\"engine\":\"sqlserver\",\"host\":\"example.com\",\"username\":\"admin\",\"password\":\"1234\"}");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "ConnectionStrings:sql-server", new () { SecretId = "test/db", Format = "RDS-sqlserver" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration["ConnectionStrings:sql-server"];
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SupportRdsNpgsqlTransformedSecrets()
+        {
+            var expected = "Server=example.com;Port=5432;Database=postgres;User Id=admin;Password=1234;";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/db", FakeSecretsManager.CurrentVersionStage, "{\"engine\":\"postgres\",\"host\":\"example.com\",\"username\":\"admin\",\"password\":\"1234\"}");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "ConnectionStrings:postgres", new () { SecretId = "test/db", Format = "RDS-npgsql" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration["ConnectionStrings:postgres"];
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SupportCustomTransformedSecrets()
+        {
+            var expected = "SOMETHING";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, "something");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret", Format = "custom" } }
+                },
+                FormatTransforms =
+                {
+                    { "custom", new CustomTransform() }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration["Secrets:secret"];
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public void GetValueCached()
         {
             var expected1 = "foobar";
@@ -148,6 +224,14 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 
             Assert.Equal(expected1, original);
             Assert.Equal(expected2, actual);
+        }
+
+        private class CustomTransform : IFormatTransform
+        {
+            public ValueTask<string?> TransformSecret(string secret)
+            {
+                return ValueTask.FromResult<string?>(secret.ToUpperInvariant());
+            }
         }
     }
 }
