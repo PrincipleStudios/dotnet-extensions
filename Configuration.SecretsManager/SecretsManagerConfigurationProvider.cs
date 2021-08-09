@@ -31,12 +31,12 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         {
             var fullParentPath = parentPath is { Length: > 0 } ? $"{parentPath}:" : "";
             if (options.Map == null)
-                return Enumerable.Empty<string>();
-            return from entry in options.Map.AsEnumerable()
-                   where entry.Value.IsValid()
-                   let key = entry.Key
-                   where key.StartsWith(fullParentPath)
-                   select key.Substring(fullParentPath.Length);
+                return earlierKeys;
+            return earlierKeys.Concat(from entry in options.Map.AsEnumerable()
+                                      where entry.Value.IsValid()
+                                      let key = entry.Key
+                                      where key.StartsWith(fullParentPath)
+                                      select key.Substring(fullParentPath.Length));
         }
 
         public IChangeToken GetReloadToken()
@@ -130,7 +130,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         {
             return options.SecretsManagerClientFactory?.Invoke() ?? StandardCreateClient();
 
-            IAmazonSecretsManager StandardCreateClient() {
+            IAmazonSecretsManager StandardCreateClient()
+            {
                 var clientConfig = new AmazonSecretsManagerConfig
                 {
                     RegionEndpoint = options.RegionEndpoint

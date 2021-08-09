@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 {
@@ -275,6 +276,34 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
             var actual = configuration["SomethingElse"];
 
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void AllowKeysFromFallThroughConfiguration()
+        {
+            var key = "Something:Else";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, "foobar");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> {
+                { key, "baz" }
+            })
+                .Add(target)
+                .Build();
+
+            var actual = configuration.GetSection("Something").GetChildren().Select(s => s.Key).ToArray();
+
+            Assert.Collection(actual, value => Assert.Equal("Else", value));
         }
 
         private class CustomTransform : IFormatTransform
