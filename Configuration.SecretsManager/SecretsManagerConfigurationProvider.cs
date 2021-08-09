@@ -57,7 +57,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
         public bool TryGet(string key, out string? value)
         {
-            if (options.Map?[key] is not SecretConfig config || !config.IsValid())
+            if (!options.Map.ContainsKey(key) || options.Map?[key] is not SecretConfig config || !config.IsValid())
             {
                 value = null;
                 return false;

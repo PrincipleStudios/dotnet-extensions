@@ -12,6 +12,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
     public class SecretsManagerConfigurationProviderShould
     {
 
+
         [Fact]
         public void GetValues()
         {
@@ -224,6 +225,28 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 
             Assert.Equal(expected1, original);
             Assert.Equal(expected2, actual);
+        }
+
+        [Fact]
+        public void MissingConfiguration()
+        {
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, "foobar");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration["SomethingElse"];
+
+            Assert.Null(actual);
         }
 
         private class CustomTransform : IFormatTransform
