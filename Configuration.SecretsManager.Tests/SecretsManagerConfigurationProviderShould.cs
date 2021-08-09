@@ -6,6 +6,7 @@ using Amazon.SecretsManager.Model;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 {
@@ -247,6 +248,33 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
             var actual = configuration["SomethingElse"];
 
             Assert.Null(actual);
+        }
+
+        [Fact]
+        public void FallThroughConfiguration()
+        {
+            var expected = "baz";
+            var key = "SomethingElse";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, "foobar");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> {
+                { key, expected }
+            }).Add(target).Build();
+
+            var actual = configuration["SomethingElse"];
+
+            Assert.Equal(expected, actual);
         }
 
         private class CustomTransform : IFormatTransform
