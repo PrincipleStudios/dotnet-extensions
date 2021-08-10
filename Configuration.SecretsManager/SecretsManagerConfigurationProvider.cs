@@ -132,14 +132,23 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
             IAmazonSecretsManager StandardCreateClient()
             {
+                var credentials = options.Credentials;
+                var region = options.RegionEndpoint;
+                if (credentials == null)
+                {
+                    var credsResult = AwsCredentialsLocator.LocateCredentials();
+                    credentials = credsResult.Credentials;
+                    region ??= credsResult.RegionEndpoint;
+                }
+
                 var clientConfig = new AmazonSecretsManagerConfig
                 {
-                    RegionEndpoint = options.RegionEndpoint
+                    RegionEndpoint = region
                 };
 
                 options.ConfigureSecretsManagerClientConfig?.Invoke(clientConfig);
 
-                return options.Credentials is Amazon.Runtime.AWSCredentials credentials
+                return credentials is Amazon.Runtime.AWSCredentials
                     ? new AmazonSecretsManagerClient(credentials, clientConfig)
                     : new AmazonSecretsManagerClient(clientConfig);
             }

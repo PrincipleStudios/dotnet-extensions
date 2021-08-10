@@ -15,10 +15,6 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             var configurationBuilder = new ConfigurationBuilder()
                 .AddSecretsManager(opt =>
                 {
-                    if (Environment.GetEnvironmentVariable("AWS_PROFILE") is string profile)
-                        opt.CredentialsProfile = profile;
-                    if (Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") is string region)
-                        opt.Region = region;
                     opt.Map = secretConfigDictionary;
                 });
 
