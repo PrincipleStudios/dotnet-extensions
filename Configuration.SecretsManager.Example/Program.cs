@@ -16,7 +16,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                 .AddSecretsManager(opt =>
                 {
                     opt.Map = secretConfigDictionary;
-                });
+                }, optional: true);
 
             var config = configurationBuilder.Build();
             var configurationHasValue = config.GetChildren().ToDictionary(child => child.Path, child => config[child.Path] != null);

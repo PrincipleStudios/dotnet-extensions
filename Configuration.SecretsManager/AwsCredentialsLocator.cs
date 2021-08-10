@@ -23,13 +23,13 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
 
             var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
-            if (chain.TryGetProfile(Environment.GetEnvironmentVariable("AWS_PROFILE"), out var profile))
+            if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_PROFILE") is string profileName && chain.TryGetProfile(profileName, out var profile))
             {
                 result.Credentials = profile.GetAWSCredentials(profile.CredentialProfileStore);
                 result.RegionEndpoint = profile.Region;
             }
 
-            if (Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") is string && Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") is string)
+            if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") is string && Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") is string)
                 result.Credentials = new EnvironmentVariablesAWSCredentials();
 
             if (Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") is string region)
