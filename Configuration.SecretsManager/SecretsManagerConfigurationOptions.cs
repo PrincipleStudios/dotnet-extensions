@@ -67,5 +67,6 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             { "RDS-sqlserver", new RdsSqlServerSecretFormatTransform() },
             { "RDS-npgsql", new RdsNpgsqlSecretFormatTransform() },
         };
+        public IFormatTransform? DefaultFormatter { get; internal set; } = new JsonFormatTransform();
     }
 }

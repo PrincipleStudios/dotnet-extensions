@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Amazon.SecretsManager.Extensions.Caching;
+using System.Collections.Concurrent;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
@@ -17,6 +18,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         private readonly IAmazonSecretsManager secretsManager;
         private readonly SecretsManagerCache cache;
         private readonly SecretsManagerConfigurationOptions options;
+
+        private readonly IFormatTransform noopFormatter = new NoopFormatter();
 
         public SecretsManagerConfigurationProvider(SecretsManagerConfigurationOptions options)
         {
@@ -35,8 +38,10 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             return earlierKeys.Concat(from entry in options.Map.AsEnumerable()
                                       where entry.Value.IsValid()
                                       let key = entry.Key
-                                      where key.StartsWith(fullParentPath)
-                                      select key.Substring(fullParentPath.Length));
+                                      let formatter = (entry.Value.Format == null || options.FormatTransforms == null) ? null : options.FormatTransforms.TryGetValue(entry.Value.Format, out var f) ? f : null
+                                      from secretEntry in (formatter ?? options.DefaultFormatter ?? noopFormatter).TransformSecret(UnwrapTask(this.cache.GetSecretString(entry.Value.SecretId))).GetKeyValuePairs(key)
+                                      where secretEntry.Key.StartsWith(fullParentPath)
+                                      select secretEntry.Key.Substring(fullParentPath.Length));
         }
 
         public IChangeToken GetReloadToken()
@@ -46,8 +51,11 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
         public void Load()
         {
-            UnwrapTask(Task.WhenAll(from secretId in options.Map.Values.Select(v => v.SecretId).Distinct()
-                                    select this.cache.RefreshNowAsync(secretId)));
+            UnwrapTask(Task.WhenAll(
+                from secretId in options.Map.Values.Select(v => v.SecretId).Distinct()
+                select this.cache
+                    .RefreshNowAsync(secretId)
+            ));
         }
 
         public void Set(string key, string value)
@@ -55,8 +63,11 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             throw new System.NotSupportedException("Cannot update secrets");
         }
 
-        public bool TryGet(string key, out string? value)
+        public bool TryGet(string originalKey, out string? value)
         {
+            var key = options.Map.Keys.FirstOrDefault(k => originalKey.StartsWith(k + ":")) ?? originalKey;
+            var suffix = key == originalKey ? null : originalKey.Substring(key.Length + 1);
+
             if (!options.Map.ContainsKey(key) || options.Map?[key] is not SecretConfig config || !config.IsValid())
             {
                 value = null;
@@ -73,7 +84,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
             try
             {
-                value = UnwrapTask(GetSingleSecret(config.SecretId, formatter));
+                value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter));
                 return true;
             }
             catch (Exception ex)
@@ -83,15 +94,14 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
-        private async Task<string?> GetSingleSecret(string secretId, IFormatTransform? formatter)
+        private async Task<string?> GetSingleSecret(string secretId, string? suffix, IFormatTransform? formatter)
         {
             var secretString = await cache.GetSecretString(secretId).ConfigureAwait(false);
-            if (formatter == null)
+            if (formatter == null && suffix == null)
                 return secretString;
-            var transformed = formatter.TransformSecret(secretString);
-            if (transformed.IsCompletedSuccessfully)
-                return transformed.Result;
-            return await transformed.ConfigureAwait(false);
+            if (formatter == null && options.DefaultFormatter == null)
+                return null;
+            return (formatter ?? options.DefaultFormatter!).TransformSecret(secretString).GetValue(suffix);
         }
 
         // This feels awfully dirty, but https://github.com/dotnet/runtime/issues/36018 is blocking proper async

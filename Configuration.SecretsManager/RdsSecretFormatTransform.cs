@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -24,13 +25,13 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             this.transform = transform ?? throw new ArgumentNullException(nameof(transform));
         }
 
-        public ValueTask<string?> TransformSecret(string secret)
+        public TransformedConfiguration TransformSecret(string secret)
         {
             var rdsSecret = JsonSerializer.Deserialize<RdsSecret>(secret, options);
             if (rdsSecret == null)
-                return new ValueTask<string?>((string ? )null);
+                return new TransformedConfiguration(Enumerable.Empty<KeyValuePair<string, string>>());
 
-            return new ValueTask<string?>(transform(rdsSecret));
+            return new TransformedConfiguration(transform(rdsSecret));
         }
 
         public static string ToConnectionString(FormattableString connectionString)

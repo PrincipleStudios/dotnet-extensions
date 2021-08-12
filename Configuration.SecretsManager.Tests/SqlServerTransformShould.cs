@@ -56,8 +56,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             });
             var target = new RdsSqlServerSecretFormatTransform();
 
-            var actual = target.TransformSecret(secret).Result;
-            Assert.Equal(expected, actual);
+            var actual = target.TransformSecret(secret);
+            Assert.True(actual.IsSingleValue);
+            Assert.Equal(expected, actual.SingleValue);
         }
     }
 }

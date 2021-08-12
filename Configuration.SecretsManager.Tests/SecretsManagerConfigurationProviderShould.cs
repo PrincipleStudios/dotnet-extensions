@@ -116,6 +116,57 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
         }
 
         [Fact]
+        public void SupportJsonTransformsByDefault()
+        {
+            var expected = "foobar";
+
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, $@"{{ ""nested"": ""{expected}"" }}");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration["Secrets:secret:nested"];
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void GetsChildren()
+        {
+            var secretManager = new FakeSecretsManager();
+            secretManager.SetSecret("test/secret", FakeSecretsManager.CurrentVersionStage, "foobar");
+            secretManager.SetSecret("test/secret/nested", FakeSecretsManager.CurrentVersionStage, $@"{{ ""nested"": ""foobar"", ""other"": ""baz"" }}");
+
+            var target = new SecretsManagerConfigurationSource(new SecretsManagerConfigurationOptions
+            {
+                CredentialsProfile = "ps",
+                Map =
+                {
+                    { "Secrets:secret", new () { SecretId = "test/secret" } },
+                    { "Secrets:withNested", new () { SecretId = "test/secret/nested" } }
+                },
+                SecretsManagerClientFactory = () => secretManager,
+            });
+            var configuration = new ConfigurationBuilder().Add(target).Build();
+
+            var actual = configuration.GetSection("Secrets:withNested").GetChildren().Select(c => c.Key).OrderBy(s => s).ToArray();
+
+            Assert.Collection(actual
+                , a => Assert.Equal("nested", a)
+                , a => Assert.Equal("other", a)
+            );
+        }
+
+        [Fact]
         public void GetValueCached()
         {
             var expected1 = "foobar";
@@ -308,9 +359,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 
         private class CustomTransform : IFormatTransform
         {
-            public ValueTask<string?> TransformSecret(string secret)
+            public TransformedConfiguration TransformSecret(string secret)
             {
-                return ValueTask.FromResult<string?>(secret.ToUpperInvariant());
+                return new TransformedConfiguration(secret.ToUpperInvariant());
             }
         }
     }
