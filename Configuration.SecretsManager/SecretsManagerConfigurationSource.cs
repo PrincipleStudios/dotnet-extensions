@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
@@ -20,6 +21,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         {
             try
             {
+                if (options.EnvironmentVariableLoadConfiguration is EnvironmentVariableLoadConfiguration { SecretIdPrefix: string idPrefix, SecretFormatPrefix: string formatPrefix })
+                    AddEnvironmentVariablesToMap(idPrefix, formatPrefix);
+
                 return new SecretsManagerConfigurationProvider(options);
             }
             catch
@@ -30,6 +34,15 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
+        private void AddEnvironmentVariablesToMap(string idPrefix, string formatPrefix)
+        {
+            var idConfig = new ConfigurationBuilder().AddEnvironmentVariables(idPrefix).Build();
+            var formatConfig = new ConfigurationBuilder().AddEnvironmentVariables(formatPrefix).Build();
+            foreach (var key in idConfig.AsEnumerable().Where(kvp => kvp.Value != null))
+            {
+                options.Map.Add(key.Key, new SecretConfig { SecretId = key.Value, Format = formatConfig[key.Key] });
+            }
+        }
     }
 
     internal class NoopConfigurationProvider : ConfigurationProvider

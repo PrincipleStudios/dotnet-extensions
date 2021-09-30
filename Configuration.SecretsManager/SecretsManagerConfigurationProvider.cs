@@ -38,10 +38,15 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             return earlierKeys.Concat(from entry in options.Map.AsEnumerable()
                                       where entry.Value.IsValid()
                                       let key = entry.Key
-                                      let formatter = (entry.Value.Format == null || options.FormatTransforms == null) ? null : options.FormatTransforms.TryGetValue(entry.Value.Format, out var f) ? f : null
-                                      from secretEntry in (formatter ?? options.DefaultFormatter ?? noopFormatter).TransformSecret(UnwrapTask(this.cache.GetSecretString(entry.Value.SecretId))).GetKeyValuePairs(key)
+                                      let formatter = GetFormatTransform(entry.Value.Format)
+                                      from secretEntry in formatter.TransformSecret(UnwrapTask<string>(this.cache.GetSecretString(entry.Value.SecretId))).GetKeyValuePairs(key)
                                       where secretEntry.Key.StartsWith(fullParentPath)
                                       select secretEntry.Key.Substring(fullParentPath.Length));
+        }
+
+        private IFormatTransform GetFormatTransform(string? format)
+        {
+            return options.FormatTransforms.TryGetValue(format ?? options.DefaultFormatter, out var f) ? f : noopFormatter;
         }
 
         public IChangeToken GetReloadToken()
@@ -74,13 +79,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                 return false;
             }
 
-            IFormatTransform? formatter = null;
-
-            if (config.Format != null && !(options.FormatTransforms?.TryGetValue(config.Format, out formatter) ?? false))
-            {
-                value = null;
-                return false;
-            }
+            var formatter = GetFormatTransform(config.Format);
 
             try
             {
@@ -94,14 +93,14 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
-        private async Task<string?> GetSingleSecret(string secretId, string? suffix, IFormatTransform? formatter)
+        private async Task<string?> GetSingleSecret(string secretId, string? suffix, IFormatTransform formatter)
         {
             var secretString = await cache.GetSecretString(secretId).ConfigureAwait(false);
             if (formatter == null && suffix == null)
                 return secretString;
-            if (formatter == null && options.DefaultFormatter == null)
+            if (formatter == null)
                 return null;
-            return (formatter ?? options.DefaultFormatter!).TransformSecret(secretString).GetValue(suffix);
+            return formatter.TransformSecret(secretString).GetValue(suffix);
         }
 
         // This feels awfully dirty, but https://github.com/dotnet/runtime/issues/36018 is blocking proper async

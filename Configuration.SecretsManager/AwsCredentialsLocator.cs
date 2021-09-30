@@ -22,8 +22,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             catch { }
 
 
-            var chain = new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain();
-            if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_PROFILE") is string profileName && chain.TryGetProfile(profileName, out var profile))
+            if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_PROFILE") is string profileName && new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain().TryGetProfile(profileName, out var profile))
             {
                 result.Credentials = profile.GetAWSCredentials(profile.CredentialProfileStore);
                 result.RegionEndpoint = profile.Region;

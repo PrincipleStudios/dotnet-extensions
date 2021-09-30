@@ -55,6 +55,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         public Action<AmazonSecretsManagerConfig>? ConfigureSecretsManagerClientConfig { get; set; }
 
         public TimeSpan? ReloadInterval { get; set; }
+        public EnvironmentVariableLoadConfiguration? EnvironmentVariableLoadConfiguration { get; set; } = new EnvironmentVariableLoadConfiguration();
         /// <summary>
         /// Key-value list: Key is the Configuration Key
         /// </summary>
@@ -64,9 +65,11 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         /// </summary>
         public IDictionary<string, IFormatTransform> FormatTransforms { get; set; } = new Dictionary<string, IFormatTransform>()
         {
+            { "noop", new NoopFormatter() },
+            { "Json", new JsonFormatTransform() },
             { "RDS-sqlserver", new RdsSqlServerSecretFormatTransform() },
             { "RDS-npgsql", new RdsNpgsqlSecretFormatTransform() },
         };
-        public IFormatTransform? DefaultFormatter { get; internal set; } = new JsonFormatTransform();
+        public string DefaultFormatter { get; internal set; } = "Json";
     }
 }

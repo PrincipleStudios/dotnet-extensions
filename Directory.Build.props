@@ -8,7 +8,7 @@
 
     
   <PropertyGroup>
-    <SecretsManagerExtensionsVersion>0.3.0</SecretsManagerExtensionsVersion>
+    <SecretsManagerExtensionsVersion>0.4.0</SecretsManagerExtensionsVersion>
   </PropertyGroup>
 
   <PropertyGroup>
