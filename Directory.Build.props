@@ -18,13 +18,13 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryBranch>main</RepositoryBranch>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageIcon>logo_black_small.png</PackageIcon>
+    <PackageIcon>principle_square.png</PackageIcon>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <Copyright>2021 Matt DeKrey &amp; Principle Studios</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)assets\logo_black_small.png" Pack="true" PackagePath="\" Visible="false"/>
+    <None Include="$(MSBuildThisFileDirectory)assets\principle_square.png" Pack="true" PackagePath="\" Visible="false"/>
     <None Include="$(MSBuildThisFileDirectory)assets\readme.md" Pack="true" PackagePath="\" Visible="false"/>
   </ItemGroup>
 </Project>
