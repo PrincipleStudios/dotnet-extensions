@@ -33,7 +33,20 @@ By default, the following environment variables are used to create configuration
 - `AWSSM_ID_` - the name of the secret within Secrets Manager.
 - `AWSSM_FORMAT_` - the Format Transform to use when loading the secret into the configuration.
 
-## Options
+## Advanced Configuration
+
+While `.AddSecretsManager()` makes it easy to use the default settings via environment variables, there are some situations where you may wish to customize your secrets further. You may add the secrets manager configuration provider through this additional call:
+
+    .AddSecretsManager(options => 
+    {
+        // configure options here
+    }, optional: false)
+
+Specifing `optional: true` means that if credentials are not supplied or any secrets are not accessible when the application launches, the secrets manager configuration will not be processed. 
+
+If no secrets are configured in the Map (either through advanced configuration or environment variables), credentials are not checked.
+
+### Options
 
 * **CredentialsProfile** - Helper property to set load a credentails profile from your system's AWS configuration
 * **CredentialProfileOptions** - Helper property to create credentials with advanced configuration

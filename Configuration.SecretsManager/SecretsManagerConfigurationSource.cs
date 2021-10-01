@@ -24,6 +24,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                 if (options.EnvironmentVariableLoadConfiguration is EnvironmentVariableLoadConfiguration { SecretIdPrefix: string idPrefix, SecretFormatPrefix: string formatPrefix })
                     AddEnvironmentVariablesToMap(idPrefix, formatPrefix);
 
+                if (!options.Map.Any())
+                    return new NoopConfigurationProvider();
+
                 return new SecretsManagerConfigurationProvider(options);
             }
             catch

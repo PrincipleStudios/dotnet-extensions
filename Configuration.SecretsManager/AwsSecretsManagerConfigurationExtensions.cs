@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.Configuration
     public static class AwsSecretsManagerConfigurationExtensions
     {
         public static IConfigurationBuilder AddSecretsManager(this IConfigurationBuilder configurationBuilder,
-            Action<SecretsManagerConfigurationOptions>? configurator,
+            Action<SecretsManagerConfigurationOptions>? configurator = null,
             bool optional = false)
         {
             var options = new SecretsManagerConfigurationOptions();

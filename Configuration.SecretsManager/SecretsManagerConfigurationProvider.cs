@@ -39,7 +39,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                                       where entry.Value.IsValid()
                                       let key = entry.Key
                                       let formatter = GetFormatTransform(entry.Value.Format)
-                                      from secretEntry in formatter.TransformSecret(UnwrapTask<string>(this.cache.GetSecretString(entry.Value.SecretId))).GetKeyValuePairs(key)
+                                      from secretEntry in formatter.TransformSecret(
+                                          UnwrapTask<string>(this.cache.GetSecretString(entry.Value.SecretId), ex => new Exception($"Encountered issue getting secret {entry.Value.SecretId} for configuration at {entry.Key}", ex))
+                                      ).GetKeyValuePairs(key)
                                       where secretEntry.Key.StartsWith(fullParentPath)
                                       select secretEntry.Key.Substring(fullParentPath.Length));
         }
@@ -60,7 +62,10 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                 from secretId in options.Map.Values.Select(v => v.SecretId).Distinct()
                 select this.cache
                     .RefreshNowAsync(secretId)
-            ));
+                    .ContinueWith(t => t.IsFaulted
+                        ? throw new Exception($"Could not load secret {secretId}", t.Exception)
+                        : t.Result)
+            ), ex => new Exception($"Encountered issue loading all secrets", ex));
         }
 
         public void Set(string key, string value)
@@ -83,7 +88,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
             try
             {
-                value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter));
+                value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter), ex => new Exception($"Encountered issue getting secret {config.SecretId} for configuration at {originalKey}", ex));
                 return true;
             }
             catch (Exception ex)
@@ -104,12 +109,12 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         }
 
         // This feels awfully dirty, but https://github.com/dotnet/runtime/issues/36018 is blocking proper async
-        private static T UnwrapTask<T>(Task<T> taskToUnwrap)
+        private static T UnwrapTask<T>(Task<T> taskToUnwrap, Func<Exception, Exception> wrapException)
         {
             if (taskToUnwrap.IsCompleted)
             {
                 if (taskToUnwrap.IsFaulted)
-                    throw taskToUnwrap.Exception;
+                    throw wrapException(taskToUnwrap.Exception);
                 return taskToUnwrap.Result;
             }
             return taskToUnwrap.ConfigureAwait(false).GetAwaiter().GetResult();

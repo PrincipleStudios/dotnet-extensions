@@ -9,14 +9,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
     {
         static void Main(string[] args)
         {
-            var json = System.IO.File.ReadAllText("config/secrets.local.json");
-            var secretConfigDictionary = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, SecretConfig>>(json)!;
-
             var configurationBuilder = new ConfigurationBuilder()
-                .AddSecretsManager(opt =>
-                {
-                    opt.Map = secretConfigDictionary;
-                }, optional: true);
+                .AddSecretsManager();
 
             var config = configurationBuilder.Build();
             var configurationHasValue = config.GetChildren().ToDictionary(child => child.Path, child => config[child.Path] != null);
