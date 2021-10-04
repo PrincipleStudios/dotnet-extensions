@@ -21,8 +21,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
         {
             try
             {
-                if (options.EnvironmentVariableLoadConfiguration is EnvironmentVariableLoadConfiguration { SecretIdPrefix: string idPrefix, SecretFormatPrefix: string formatPrefix })
-                    AddEnvironmentVariablesToMap(idPrefix, formatPrefix);
+                if (options.EnvironmentVariableLoadConfiguration is EnvironmentVariableLoadConfiguration { SecretIdPrefix: string idPrefix, SecretFormatPrefix: string formatPrefix, SecretArgumentPrefix: string argumentPrefix })
+                    AddEnvironmentVariablesToMap(idPrefix, formatPrefix, argumentPrefix);
 
                 if (!options.Map.Any())
                     return new NoopConfigurationProvider();
@@ -37,13 +37,14 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
-        private void AddEnvironmentVariablesToMap(string idPrefix, string formatPrefix)
+        private void AddEnvironmentVariablesToMap(string idPrefix, string formatPrefix, string argumentPrefix)
         {
             var idConfig = new ConfigurationBuilder().AddEnvironmentVariables(idPrefix).Build();
             var formatConfig = new ConfigurationBuilder().AddEnvironmentVariables(formatPrefix).Build();
+            var argumentConfig = new ConfigurationBuilder().AddEnvironmentVariables(argumentPrefix).Build();
             foreach (var key in idConfig.AsEnumerable().Where(kvp => kvp.Value != null))
             {
-                options.Map.Add(key.Key, new SecretConfig { SecretId = key.Value, Format = formatConfig[key.Key] });
+                options.Map.Add(key.Key, new SecretConfig { SecretId = key.Value, Format = formatConfig[key.Key], Argument = argumentConfig[key.Key] });
             }
         }
     }

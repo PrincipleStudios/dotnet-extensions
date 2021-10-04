@@ -6,6 +6,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
     {
         public string SecretId { get; set; }
         public string? Format { get; set; }
+        public string? Argument { get; set; }
 
         internal bool IsValid()
         {

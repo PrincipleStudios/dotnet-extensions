@@ -6,7 +6,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
     public interface IFormatTransform
     {
-        TransformedConfiguration TransformSecret(string secret);
+        TransformedConfiguration TransformSecret(string secret, string? arg);
     }
 
     public ref struct TransformedConfiguration

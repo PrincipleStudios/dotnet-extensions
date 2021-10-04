@@ -40,7 +40,8 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                                       let key = entry.Key
                                       let formatter = GetFormatTransform(entry.Value.Format)
                                       from secretEntry in formatter.TransformSecret(
-                                          UnwrapTask<string>(this.cache.GetSecretString(entry.Value.SecretId), ex => new Exception($"Encountered issue getting secret {entry.Value.SecretId} for configuration at {entry.Key}", ex))
+                                          UnwrapTask<string>(this.cache.GetSecretString(entry.Value.SecretId), ex => new Exception($"Encountered issue getting secret {entry.Value.SecretId} for configuration at {entry.Key}", ex)),
+                                          entry.Value.Argument
                                       ).GetKeyValuePairs(key)
                                       where secretEntry.Key.StartsWith(fullParentPath)
                                       select secretEntry.Key.Substring(fullParentPath.Length));
@@ -88,7 +89,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
             try
             {
-                value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter), ex => new Exception($"Encountered issue getting secret {config.SecretId} for configuration at {originalKey}", ex));
+                value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter, config.Argument), ex => new Exception($"Encountered issue getting secret {config.SecretId} for configuration at {originalKey}", ex));
                 return true;
             }
             catch (Exception ex)
@@ -98,14 +99,14 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             }
         }
 
-        private async Task<string?> GetSingleSecret(string secretId, string? suffix, IFormatTransform formatter)
+        private async Task<string?> GetSingleSecret(string secretId, string? suffix, IFormatTransform formatter, string? argument)
         {
             var secretString = await cache.GetSecretString(secretId).ConfigureAwait(false);
             if (formatter == null && suffix == null)
                 return secretString;
             if (formatter == null)
                 return null;
-            return formatter.TransformSecret(secretString).GetValue(suffix);
+            return formatter.TransformSecret(secretString, argument).GetValue(suffix);
         }
 
         // This feels awfully dirty, but https://github.com/dotnet/runtime/issues/36018 is blocking proper async

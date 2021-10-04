@@ -25,7 +25,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
             this.transform = transform ?? throw new ArgumentNullException(nameof(transform));
         }
 
-        public TransformedConfiguration TransformSecret(string secret)
+        public TransformedConfiguration TransformSecret(string secret, string? arg)
         {
             var rdsSecret = JsonSerializer.Deserialize<RdsSecret>(secret, options);
             if (rdsSecret == null)

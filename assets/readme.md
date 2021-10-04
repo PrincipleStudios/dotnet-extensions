@@ -32,6 +32,7 @@ By default, the following environment variables are used to create configuration
 
 - `AWSSM_ID_` - the name of the secret within Secrets Manager.
 - `AWSSM_FORMAT_` - the Format Transform to use when loading the secret into the configuration.
+- `AWSSM_ARG_` - the argument passed to the format transform.
 
 ## Advanced Configuration
 
@@ -62,9 +63,10 @@ If no secrets are configured in the Map (either through advanced configuration o
 * **Map** - Provides a programmatic mapping from configuration keys to AWS secret ids for custom structuring of your configuration. Keys are .NET Configuration paths.
     * **SecretId** - The name of the secret id within AWS.
     * **Format** - Transforms the value in the secret before adding it to the config. See `FormatTransforms`.
+    * **Argument** - The argument passed to the format transform.
 * **FormatTransforms** - A dictionary containing format mappings. Each mapping implements the `IFormatTransform`. Preregistered transforms include:
     - _noop_ - Passes the raw value of the secret as a string within the configuration key
-    - _Json_ - Expands a Json object into multiple configuration keys nested underneath the main key for the secret.
+    - _Json_ - Expands a Json object into multiple configuration keys nested underneath the main key for the secret. Alternatively, if an argument is provided, extract only the property named in the argument as the value.
     - _RDS-sqlserver_ - Expects an RDS secret from SecretsManager and transforms it into a SqlConnection ConnectionString.
     - _RDS-npgsql_ - Expects an RDS secret from SecretsManager and transforms it into a Npgsql ConnectionString.
 * **DefaultFormatter** - The default formatter to use when loading a secret. (Defaults to "Json")
