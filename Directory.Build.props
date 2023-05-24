@@ -46,4 +46,8 @@
     <None Include="$(MSBuildThisFileDirectory)assets\principle_square.png" Pack="true" PackagePath="\" Visible="false"/>
     <None Include="$(MSBuildThisFileDirectory)assets\readme.md" Pack="true" PackagePath="\" Visible="false"/>
   </ItemGroup>
+
+  <Target Name="_FormatSourceFiles" BeforeTargets="BeforeBuild" Inputs="@(Compile)" Outputs="@(IntermediateAssembly)">
+    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet format" />
+  </Target>
 </Project>
