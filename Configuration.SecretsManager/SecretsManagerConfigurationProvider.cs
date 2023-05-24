@@ -92,7 +92,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
                 value = UnwrapTask(GetSingleSecret(config.SecretId, suffix, formatter, config.Argument), ex => new Exception($"Encountered issue getting secret {config.SecretId} for configuration at {originalKey}", ex));
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 value = null;
                 return false;
