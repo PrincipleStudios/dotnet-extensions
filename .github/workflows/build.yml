@@ -27,7 +27,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: |
+        if [[ $VERSION_SUFFIX ]]; then
+          VERSION_SUFFIX_PARAM="--version-suffix sha.$VERSION_SUFFIX"
+        else
+          VERSION_SUFFIX_PARAM=''
+        fi
+        dotnet build --no-restore --configuration Release ${VERSION_SUFFIX_PARAM}
+      env:
+        VERSION_SUFFIX: ${{ github.ref != 'refs/heads/main' && github.sha || '' }}
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
 
