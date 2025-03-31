@@ -21,6 +21,11 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			}
 			catch { }
 
+			if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_SSO_PROFILE") is string ssoProfileName &&
+				new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain().TryGetAWSCredentials(ssoProfileName, out var ssoCredentials))
+			{
+				result.Credentials = ssoCredentials;
+			}
 
 			if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_PROFILE") is string profileName && new Amazon.Runtime.CredentialManagement.CredentialProfileStoreChain().TryGetProfile(profileName, out var profile))
 			{
