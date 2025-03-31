@@ -23,8 +23,9 @@ Environment variables are used to keep your configuration flexible at run-time.
 ### Credentials
 
 1. If an `AWS_PROFILE` environment variable is provided, the credentials and region are loaded from the AWS Credential Profile Store Chain.
-2. If both `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables are provided, they are used.
-3. If an `AWS_DEFAULT_REGION` environment variable is provided, the region specified overrides other environment variables.
+2. If an `AWS_SSO_PROFILE` environment variable is provided, the credentials and region are loaded from the AWS Credential Profile Store Chain from an AWS SSO login.
+3. If both `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables are provided, they are used.
+4. If an `AWS_DEFAULT_REGION` environment variable is provided, the region specified overrides other environment variables.
 
 ### Configuration Mapping
 
