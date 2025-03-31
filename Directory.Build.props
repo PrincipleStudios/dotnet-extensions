@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <LangVersion>11</LangVersion>
+    <LangVersion>10</LangVersion>
 
     <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
     <SolutionRoot>$(MSBuildThisFileDirectory)</SolutionRoot>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ConfigurationSecretsManagerVersion>0.6.1</ConfigurationSecretsManagerVersion>
+    <ConfigurationSecretsManagerVersion>0.6.0</ConfigurationSecretsManagerVersion>
   </PropertyGroup>
 
   <PropertyGroup>
