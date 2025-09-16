@@ -1,13 +1,9 @@
-using System;
-using Xunit;
-using Amazon.SecretsManager;
-using Moq;
-using Amazon.SecretsManager.Model;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Xunit;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 {
@@ -342,7 +338,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 				},
 				SecretsManagerClientFactory = () => secretManager,
 			});
-			var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> {
+			var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
 				{ key, expected }
 			}).Add(target).Build();
 
@@ -368,7 +364,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 				},
 				SecretsManagerClientFactory = () => secretManager,
 			});
-			var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> {
+			var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
 				{ key, "baz" }
 			})
 				.Add(target)
@@ -376,7 +372,9 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager.Tests
 
 			var actual = configuration.GetSection("Something").GetChildren().Select(s => s.Key).ToArray();
 
-			Assert.Collection(actual, value => Assert.Equal("Else", value));
+			var value = Assert.Single(actual);
+
+			Assert.Equal("Else", value);
 		}
 
 		private class CustomTransform : IFormatTransform

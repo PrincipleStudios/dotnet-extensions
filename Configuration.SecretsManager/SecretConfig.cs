@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PrincipleStudios.Extensions.Configuration.SecretsManager
+﻿namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
 	public struct SecretConfig
 	{
@@ -8,7 +6,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 		public string? Format { get; set; }
 		public string? Argument { get; set; }
 
-		internal bool IsValid()
+		internal readonly bool IsValid()
 		{
 			return SecretId != null;
 		}

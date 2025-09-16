@@ -1,10 +1,10 @@
 ﻿using Amazon.Runtime;
+using Amazon.Runtime.Endpoints;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +15,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 		public const string CurrentVersionStage = "AWSCURRENT";
 		record SecretRecord(string Value, HashSet<string> VersionStages);
 
-		private Dictionary<string /* SecretId */, Dictionary<string /*VersionId*/, SecretRecord>> secretValues = new Dictionary<string, Dictionary<string, SecretRecord>>();
+		private readonly Dictionary<string /* SecretId */, Dictionary<string /*VersionId*/, SecretRecord>> secretValues = new();
 
 		//public string GetSecretAtStage(string secretId, string versionStage)
 		//{
@@ -169,6 +169,16 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 		}
 
 		public Task<ValidateResourcePolicyResponse> ValidateResourcePolicyAsync(ValidateResourcePolicyRequest request, CancellationToken cancellationToken = default)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<BatchGetSecretValueResponse> BatchGetSecretValueAsync(BatchGetSecretValueRequest request, CancellationToken cancellationToken = default)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Endpoint DetermineServiceOperationEndpoint(AmazonWebServiceRequest request)
 		{
 			throw new NotImplementedException();
 		}

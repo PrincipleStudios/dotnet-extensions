@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using Xunit;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
@@ -45,15 +41,17 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			);
 		}
 
-		private void VerifyConnectionString(RdsSecret rdsSecret, string expected)
+		private static readonly JsonSerializerOptions JsonOptions = new()
+		{
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+		};
+
+		private static void VerifyConnectionString(RdsSecret rdsSecret, string expected)
 		{
 			// Verifies that the expected value is valid before testing the RDS transform
 			using var connection = new Npgsql.NpgsqlConnection(expected);
 
-			var secret = System.Text.Json.JsonSerializer.Serialize(rdsSecret, new System.Text.Json.JsonSerializerOptions
-			{
-				PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
-			});
+			var secret = JsonSerializer.Serialize(rdsSecret, JsonOptions);
 			var target = new RdsNpgsqlSecretFormatTransform();
 
 			var actual = target.TransformSecret(secret, null);

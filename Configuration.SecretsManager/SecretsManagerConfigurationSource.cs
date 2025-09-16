@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
@@ -44,7 +41,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			var argumentConfig = new ConfigurationBuilder().AddEnvironmentVariables(argumentPrefix).Build();
 			foreach (var key in idConfig.AsEnumerable().Where(kvp => kvp.Value != null))
 			{
-				options.Map.Add(key.Key, new SecretConfig { SecretId = key.Value, Format = formatConfig[key.Key], Argument = argumentConfig[key.Key] });
+				options.Map.Add(key.Key, new SecretConfig { SecretId = key.Value ?? string.Empty, Format = formatConfig[key.Key], Argument = argumentConfig[key.Key] });
 			}
 		}
 	}

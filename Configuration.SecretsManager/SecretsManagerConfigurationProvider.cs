@@ -1,13 +1,11 @@
-﻿using Microsoft.Extensions.Options;
-using Amazon.SecretsManager;
-using System.Collections.Generic;
+﻿using Amazon.SecretsManager;
+using Amazon.SecretsManager.Extensions.Caching;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
-using Amazon.SecretsManager.Extensions.Caching;
-using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
@@ -30,7 +28,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			this.cache = new SecretsManagerCache(this.secretsManager, new SecretCacheConfiguration { CacheItemTTL = millisecondsCacheDuration });
 		}
 
-		public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string parentPath)
+		public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string? parentPath)
 		{
 			var fullParentPath = parentPath is { Length: > 0 } ? $"{parentPath}:" : "";
 			if (options.Map == null)
@@ -69,7 +67,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			), ex => new Exception($"Encountered issue loading all secrets", ex));
 		}
 
-		public void Set(string key, string value)
+		public void Set(string key, string? value)
 		{
 			throw new System.NotSupportedException("Cannot update secrets");
 		}
@@ -163,7 +161,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 
 				options.ConfigureSecretsManagerClientConfig?.Invoke(clientConfig);
 
-				return credentials is Amazon.Runtime.AWSCredentials
+				return credentials is not null
 					? new AmazonSecretsManagerClient(credentials, clientConfig)
 					: new AmazonSecretsManagerClient(clientConfig);
 			}
