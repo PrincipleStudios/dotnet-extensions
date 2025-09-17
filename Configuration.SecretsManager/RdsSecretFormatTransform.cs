@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
 
 	public class RdsSecretFormatTransform : IFormatTransform
 	{
-		private static readonly JsonSerializerOptions options = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions options = new()
 		{
 			PropertyNameCaseInsensitive = true
 		};

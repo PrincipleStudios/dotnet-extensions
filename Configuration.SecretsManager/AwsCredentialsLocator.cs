@@ -1,5 +1,5 @@
-﻿using System;
-using Amazon.Runtime;
+﻿using Amazon.Runtime;
+using System;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
@@ -11,7 +11,6 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 			public Amazon.RegionEndpoint? RegionEndpoint { get; set; }
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "AWS SDK is weird")]
 		internal static AwsEndpointCredentials LocateCredentials()
 		{
 			var result = new AwsEndpointCredentials();
@@ -33,7 +32,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 				result.RegionEndpoint = profile.Region;
 			}
 
-			if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") is string && Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") is string)
+			if (result.Credentials == null && Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") is not null && Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") is not null)
 				result.Credentials = new EnvironmentVariablesAWSCredentials();
 
 			if (Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") is string region)

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 {
@@ -9,7 +8,7 @@ namespace PrincipleStudios.Extensions.Configuration.SecretsManager
 		TransformedConfiguration TransformSecret(string secret, string? arg);
 	}
 
-	public ref struct TransformedConfiguration
+	public readonly ref struct TransformedConfiguration
 	{
 		public TransformedConfiguration(string singleValue)
 		{

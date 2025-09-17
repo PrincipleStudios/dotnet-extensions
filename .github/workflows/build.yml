@@ -1,52 +1,51 @@
 name: Build .NET
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  build:
+    build:
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
+              with:
+                  dotnet-version: 9.0.x
+            - uses: actions/cache@v3
+              with:
+                  path: ~/.nuget/packages
+                  # Look to see if there is a cache hit for the corresponding requirements file
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nuget
+            - name: Restore dependencies
+              run: dotnet restore
+            - name: Build
+              run: |
+                  if [[ $VERSION_SUFFIX ]]; then
+                    VERSION_SUFFIX_PARAM="--version-suffix sha.$VERSION_SUFFIX"
+                  else
+                    VERSION_SUFFIX_PARAM=''
+                  fi
+                  dotnet build --no-restore --configuration Release ${VERSION_SUFFIX_PARAM}
+              env:
+                  VERSION_SUFFIX: ${{ github.ref != 'refs/heads/main' && github.sha || '' }}
+            - name: Test
+              run: dotnet test --no-build --verbosity normal --configuration Release
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: |
-        if [[ $VERSION_SUFFIX ]]; then
-          VERSION_SUFFIX_PARAM="--version-suffix sha.$VERSION_SUFFIX"
-        else
-          VERSION_SUFFIX_PARAM=''
-        fi
-        dotnet build --no-restore --configuration Release ${VERSION_SUFFIX_PARAM}
-      env:
-        VERSION_SUFFIX: ${{ github.ref != 'refs/heads/main' && github.sha || '' }}
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Release
-
-    - name: Publish tool to GitHub registry if new version number
-      if: ${{ github.ref != 'refs/heads/main' }}
-      run: dotnet nuget push ./artifacts/packages/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/$GITHUB_REPOSITORY_OWNER/index.json --skip-duplicate --no-symbols
-      continue-on-error: true # Dependabot and other outside contributors can't push to our GitHub packages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish tool to NuGet registry if new version number
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: dotnet nuget push ./artifacts/packages/Release/*.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+            - name: Publish tool to GitHub registry if new version number
+              if: ${{ github.ref != 'refs/heads/main' }}
+              run: dotnet nuget push ./artifacts/packages/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/$GITHUB_REPOSITORY_OWNER/index.json --skip-duplicate --no-symbols
+              continue-on-error: true # Dependabot and other outside contributors can't push to our GitHub packages
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Publish tool to NuGet registry if new version number
+              if: ${{ github.ref == 'refs/heads/main' }}
+              run: dotnet nuget push ./artifacts/packages/Release/*.nupkg -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
+              env:
+                  NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
