@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ConfigurationSecretsManagerVersion>0.6.0</ConfigurationSecretsManagerVersion>
+    <ConfigurationSecretsManagerVersion>0.7.0</ConfigurationSecretsManagerVersion>
   </PropertyGroup>
 
   <PropertyGroup>
